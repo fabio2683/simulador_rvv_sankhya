@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador RVV - Hunter/Farmer - Sankhya</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Cores Sankhya */
+            --sankhya-dark: #233D54;
+            --sankhya-green: #00CD60;
+            --sankhya-green-light: #66CC66;
+            --sankhya-red: #F4364C;
+            --sankhya-gray-bg: #F3F3F3;
+            --sankhya-text: #343C50;
+            --sankhya-text-light: #595959;
+
+            /* Cores auxiliares */
+            --white: #FFFFFF;
+            --gray-100: #F9F9F9;
+            --gray-200: #E5E5E5;
+            --gray-300: #D0D0D0;
+            --warning: #ED561B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--sankhya-gray-bg);
+            min-height: 100vh;
+            color: var(--sankhya-text);
+        }
+
+        /* Header Sankhya */
+        .top-bar {
+            background: var(--sankhya-dark);
+            padding: 12px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(35, 61, 84, 0.3);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            color: var(--sankhya-green);
+        }
+
+        .header-title {
+            color: var(--white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px 20px;
+        }
+
+        .page-title {
+            color: var(--sankhya-red);
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legenda {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--sankhya-text-light);
+        }
+
+        .legenda-campo {
+            width: 20px;
+            height: 14px;
+            background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%);
+            border: 2px solid #F0D060;
+            border-radius: 3px;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(35, 61, 84, 0.08);
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--sankhya-dark);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--sankhya-green);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 3px;
+            height: 16px;
+            background: var(--sankhya-green);
+            border-radius: 2px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: var(--sankhya-text);
+            margin-bottom: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 8px 10px;
+            border: 2px solid var(--gray-200);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: var(--white);
+            color: var(--sankhya-text);
+        }
+
+        /* Campos de preenchimento obrigatório */
+        .campo-usuario {
+            background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%) !important;
+            border: 2px solid #F0D060 !important;
+        }
+
+        .campo-usuario:focus {
+            border-color: var(--sankhya-green) !important;
+            box-shadow: 0 0 0 3px rgba(0, 205, 96, 0.15);
+        }
+
+        .campo-usuario::placeholder {
+            color: #C4A030;
+        }
+
+        /* Campo de preenchimento em fundo escuro */
+        .campo-usuario-dark {
+            background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%) !important;
+            border: 2px solid #F0D060 !important;
+            color: var(--sankhya-dark) !important;
+        }
+
+        .campo-usuario-dark::placeholder {
+            color: #C4A030 !important;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--sankhya-green);
+            box-shadow: 0 0 0 3px rgba(0, 205, 96, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: var(--gray-300);
+        }
+
+        .area-badge {
+            padding: 8px 10px;
+            border: 2px solid var(--sankhya-green);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: rgba(0, 205, 96, 0.1);
+            color: var(--sankhya-dark);
+            text-align: center;
+        }
+
+        .info-box {
+            background: var(--gray-100);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            border: 1px solid var(--gray-200);
+            display: flex;
+            gap: 12px;
+        }
+
+        .info-main {
+            flex: 1;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 8px;
+            background: var(--white);
+            border-radius: 6px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .info-item .label {
+            font-size: 0.6rem;
+            color: var(--sankhya-text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+            font-weight: 500;
+        }
+
+        .info-item .value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--sankhya-dark);
+        }
+
+        .info-item .value.green {
+            color: var(--sankhya-green);
+        }
+
+        .meses-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .meses-grid {
+                grid-template-columns: 1fr;
+            }
+            .top-bar {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .mes-card {
+            background: var(--gray-100);
+            border-radius: 8px;
+            padding: 12px;
+            border: 2px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+
+        .mes-card:hover {
+            border-color: var(--sankhya-green);
+        }
+
+        .mes-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .mes-inputs .form-group label {
+            font-size: 0.6rem;
+            margin-bottom: 2px;
+        }
+
+        .mes-inputs .form-group input {
+            padding: 5px 6px;
+            font-size: 0.75rem;
+        }
+
+        /* Ramp-up checkbox */
+        .rampup-container {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--gray-300);
+        }
+
+        .rampup-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: var(--sankhya-text);
+        }
+
+        .rampup-label input[type="checkbox"] {
+            display: none;
+        }
+
+        .rampup-checkmark {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--gray-300);
+            border-radius: 3px;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .rampup-label input[type="checkbox"]:checked + .rampup-checkmark {
+            background: var(--sankhya-green);
+            border-color: var(--sankhya-green);
+        }
+
+        .rampup-label input[type="checkbox"]:checked + .rampup-checkmark::after {
+            content: '✓';
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .rampup-text {
+            font-weight: 500;
+        }
+
+        .rampup-info {
+            margin-top: 6px;
+            padding: 5px 8px;
+            background: rgba(0, 205, 96, 0.1);
+            border-radius: 4px;
+            font-size: 0.65rem;
+            color: var(--sankhya-text);
+            display: none;
+        }
+
+        .rampup-info.active {
+            display: block;
+        }
+
+        .rampup-info .garantido {
+            color: var(--sankhya-green);
+            font-weight: 600;
+        }
+
+        .mes-card h4 {
+            color: var(--sankhya-dark);
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .resultado-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .resultado-item {
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+        }
+
+        .resultado-item .label {
+            font-size: 0.6rem;
+            color: var(--sankhya-text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+            font-weight: 500;
+        }
+
+        .resultado-item .value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--sankhya-dark);
+        }
+
+        .patamar-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .patamar-badge.below { background: #FDECEA; color: var(--sankhya-red); }
+        .patamar-badge.low { background: #FEF3E2; color: var(--warning); }
+        .patamar-badge.target { background: #E6F9EE; color: #059669; }
+        .patamar-badge.above { background: #E0F2FE; color: #0369A1; }
+
+        .trimestre-box {
+            background: var(--sankhya-dark);
+            border-radius: 10px;
+            padding: 15px;
+            color: var(--white);
+            margin-top: 12px;
+        }
+
+        .trimestre-box h4 {
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .trimestre-box h4::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: var(--sankhya-green);
+            border-radius: 2px;
+        }
+
+        .trimestre-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .trimestre-item {
+            text-align: center;
+            padding: 8px 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .trimestre-item .label {
+            font-size: 0.55rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+            font-weight: 500;
+        }
+
+        .trimestre-item .value {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .trimestre-item.highlight {
+            background: var(--sankhya-green);
+            border-color: var(--sankhya-green);
+        }
+
+        .trimestre-item.highlight .label {
+            opacity: 1;
+        }
+
+        .trimestre-item.clawback-item {
+            background: rgba(244, 54, 76, 0.15);
+            border-color: rgba(244, 54, 76, 0.3);
+        }
+
+        .clawback-input {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            color: var(--white);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            font-family: inherit;
+            margin-top: 2px;
+        }
+
+        .clawback-input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .clawback-input:focus {
+            outline: none;
+            border-color: var(--sankhya-red);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .fluxo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .fluxo-table th,
+        .fluxo-table td {
+            padding: 14px 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .fluxo-table th {
+            background: var(--sankhya-dark);
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .fluxo-table th:first-child {
+            border-radius: 8px 0 0 0;
+        }
+
+        .fluxo-table th:last-child {
+            border-radius: 0 8px 0 0;
+        }
+
+        .fluxo-table tbody tr:hover td {
+            background: var(--gray-100);
+        }
+
+        .fluxo-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+            color: var(--sankhya-dark);
+        }
+
+        .fluxo-table .total-row {
+            background: var(--sankhya-green);
+            color: var(--white);
+            font-weight: 700;
+        }
+
+        .fluxo-table .total-row td {
+            border-bottom: none;
+        }
+
+        .fluxo-table .total-row td:first-child {
+            border-radius: 0 0 0 8px;
+            color: var(--white);
+        }
+
+        .fluxo-table .total-row td:last-child {
+            border-radius: 0 0 8px 0;
+        }
+
+        .fluxo-table .total-row:hover td {
+            background: var(--sankhya-green);
+        }
+
+        .curva-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 100px;
+        }
+
+        .curva-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            background: var(--white);
+            border-radius: 6px;
+            border: 1px solid var(--gray-200);
+            border-left: 3px solid;
+        }
+
+        .curva-item.gatilho { border-left-color: var(--warning); }
+        .curva-item.meta { border-left-color: var(--sankhya-green); }
+        .curva-item.teto { border-left-color: var(--sankhya-dark); }
+
+        .curva-item .label {
+            font-size: 0.6rem;
+            color: var(--sankhya-text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-weight: 500;
+            min-width: 45px;
+        }
+
+        .curva-item .percent {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--sankhya-dark);
+        }
+
+        .curva-item .salarios {
+            font-size: 0.65rem;
+            color: var(--sankhya-text-light);
+            margin-left: auto;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--sankhya-green);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: #00B855;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 205, 96, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--sankhya-text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-300);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .mix-display {
+            display: flex;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .mix-fixo {
+            background: var(--sankhya-dark);
+        }
+
+        .mix-variavel {
+            background: var(--sankhya-green);
+        }
+
+        .mix-legend {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            font-size: 0.6rem;
+            color: var(--sankhya-text-light);
+        }
+
+        .mix-legend span {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .mix-legend .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--sankhya-text-light);
+            margin-top: 30px;
+            padding: 20px;
+            font-size: 0.8rem;
+        }
+
+        .footer a {
+            color: var(--sankhya-green);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Resumo cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 20px;
+            background: var(--white);
+            border-radius: 10px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .summary-item .label {
+            font-size: 0.7rem;
+            color: var(--sankhya-text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .summary-item .value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--sankhya-green);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Sankhya -->
+    <div class="top-bar">
+        <div class="logo-area">
+            <div class="logo-text">Sankhya<span>.</span></div>
+        </div>
+        <div class="header-title">Simulador de Remuneração Variável Comercial</div>
+    </div>
+
+    <div class="container">
+        <h1 class="page-title">
+            Simulador RVV - Hunter/Farmer
+            <span class="legenda">
+                <span class="legenda-campo"></span>
+                Campos de preenchimento para cálculo
+            </span>
+        </h1>
+
+        <!-- Dados do Colaborador -->
+        <div class="card">
+            <h3 class="card-title">Dados do Colaborador</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Área</label>
+                    <div class="area-badge">Hunter / Farmer</div>
+                </div>
+                <div class="form-group">
+                    <label>Cargo</label>
+                    <select id="cargo" onchange="carregarParametros()">
+                        <option value="">Selecione o cargo</option>
+                        <option value="Ger. Negócios">Ger. Negócios</option>
+                        <option value="Ger. Regional de Vendas">Ger. Regional de Vendas</option>
+                        <option value="Coord. Negócios">Coord. Negócios</option>
+                        <option value="Exec. Enterprise">Exec. Enterprise</option>
+                        <option value="Exec. Negócios (Novos)">Exec. Negócios (Novos)</option>
+                        <option value="Exec. Negócios (Base)">Exec. Negócios (Base)</option>
+                        <option value="Exec. Inside Sales">Exec. Inside Sales</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Salário Base (R$)</label>
+                    <input type="text" id="salario" placeholder="0,00" class="campo-usuario" onfocus="limparFormatacao(this)" onblur="formatarCampo(this)">
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-main">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">Mix Alvo</div>
+                            <div class="value" id="mixDisplay">-</div>
+                            <div class="mix-display">
+                                <div class="mix-fixo" id="mixFixoBar" style="width: 67%"></div>
+                                <div class="mix-variavel" id="mixVarBar" style="width: 33%"></div>
+                            </div>
+                            <div class="mix-legend">
+                                <span><div class="dot" style="background: var(--sankhya-dark)"></div> Fixo</span>
+                                <span><div class="dot" style="background: var(--sankhya-green)"></div> Var</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">RVV Target/Mês</div>
+                            <div class="value green" id="rvvTarget">R$ 0</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">KPI</div>
+                            <div class="value" id="kpiDisplay" style="font-size: 0.9rem;">MRR</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Escopo</div>
+                            <div class="value" id="escopoDisplay" style="font-size: 0.9rem;">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="curva-info">
+                    <div class="curva-item gatilho">
+                        <div class="label">Gatilho</div>
+                        <div class="percent" id="gatilhoPercent">70%</div>
+                        <div class="salarios" id="gatilhoSal">1,05 sal/tri</div>
+                    </div>
+                    <div class="curva-item meta">
+                        <div class="label">Meta</div>
+                        <div class="percent">100%</div>
+                        <div class="salarios" id="metaSal">1,5 sal/tri</div>
+                    </div>
+                    <div class="curva-item teto">
+                        <div class="label">Teto</div>
+                        <div class="percent" id="tetoPercent">300%</div>
+                        <div class="salarios" id="tetoSal">12,0 sal/tri</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulação Mensal -->
+        <div class="card">
+            <h3 class="card-title">Simulação do Trimestre</h3>
+            <div class="meses-grid">
+                <div class="mes-card">
+                    <h4>Mês 1</h4>
+                    <div class="mes-inputs">
+                        <div class="form-group">
+                            <label>Meta (R$)</label>
+                            <input type="text" id="meta1" placeholder="0,00" class="campo-usuario" onfocus="limparFormatacao(this)" onblur="formatarCampo(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Realizado (R$)</label>
+                            <input type="text" id="realizado1" placeholder="0,00" class="campo-usuario" onfocus="limparFormatacao(this)" onblur="formatarCampo(this)">
+                        </div>
+                    </div>
+                    <div class="resultado-grid">
+                        <div class="resultado-item">
+                            <div class="label">Atingimento</div>
+                            <div class="value" id="ating1">0%</div>
+                            <div class="patamar-badge below" id="patamar1">&lt;50%</div>
+                        </div>
+                        <div class="resultado-item">
+                            <div class="label">RVV Mês</div>
+                            <div class="value" id="rvv1">R$ 0</div>
+                        </div>
+                    </div>
+                    <div class="rampup-container" id="rampup1Container">
+                        <label class="rampup-label">
+                            <input type="checkbox" id="rampup1" onchange="calcular()">
+                            <span class="rampup-checkmark"></span>
+                            <span class="rampup-text">Ramp-up (mínimo garantido)</span>
+                        </label>
+                        <div class="rampup-info" id="rampup1Info"></div>
+                    </div>
+                </div>
+
+                <div class="mes-card">
+                    <h4>Mês 2</h4>
+                    <div class="mes-inputs">
+                        <div class="form-group">
+                            <label>Meta (R$)</label>
+                            <input type="text" id="meta2" placeholder="0,00" class="campo-usuario" onfocus="limparFormatacao(this)" onblur="formatarCampo(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Realizado (R$)</label>
+                            <input type="text" id="realizado2" placeholder="0,00" class="campo-usuario" onfocus="limparFormatacao(this)" onblur="formatarCampo(this)">
+                        </div>
+                    </div>
+                    <div class="resultado-grid">
+                        <div class="resultado-item">
+                            <div class="label">Atingimento</div>
+                            <div class="value" id="ating2">0%</div>
+                            <div class="patamar-badge below" id="patamar2">&lt;50%</div>
+                        </div>
+                        <div class="resultado-item">
+                            <div class="label">RVV Mês</div>
+                            <div class="value" id="rvv2">R$ 0</div>
+                        </div>
+                    </div>
+                    <div class="rampup-container" id="rampup2Container">
+                        <label class="rampup-label">
+                            <input type="checkbox" id="rampup2" onchange="calcular()">
+                            <span class="rampup-checkmark"></span>
+                            <span class="rampup-text">Ramp-up (mínimo garantido)</span>
+                        </label>
+                        <div class="rampup-info" id="rampup2Info"></div>
+                    </div>
+                </div>
+
+                <div class="mes-card">
+                    <h4>Mês 3</h4>
+                    <div class="mes-inputs">
+                        <div class="form-group">
+                            <label>Meta (R$)</label>
+                            <input type="text" id="meta3" placeholder="0,00" class="campo-usuario" onfocus="limparFormatacao(this)" onblur="formatarCampo(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Realizado (R$)</label>
+                            <input type="text" id="realizado3" placeholder="0,00" class="campo-usuario" onfocus="limparFormatacao(this)" onblur="formatarCampo(this)">
+                        </div>
+                    </div>
+                    <div class="resultado-grid">
+                        <div class="resultado-item">
+                            <div class="label">Atingimento</div>
+                            <div class="value" id="ating3">0%</div>
+                            <div class="patamar-badge below" id="patamar3">&lt;50%</div>
+                        </div>
+                        <div class="resultado-item">
+                            <div class="label">RVV Mês</div>
+                            <div class="value" id="rvv3">R$ 0</div>
+                        </div>
+                    </div>
+                    <div class="rampup-container" id="rampup3Container">
+                        <label class="rampup-label">
+                            <input type="checkbox" id="rampup3" onchange="calcular()">
+                            <span class="rampup-checkmark"></span>
+                            <span class="rampup-text">Ramp-up (mínimo garantido)</span>
+                        </label>
+                        <div class="rampup-info" id="rampup3Info"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="trimestre-box">
+                <h4>Balanço Trimestral</h4>
+                <div class="trimestre-grid">
+                    <div class="trimestre-item">
+                        <div class="label">Meta Trimestre</div>
+                        <div class="value" id="metaTri">R$ 0</div>
+                    </div>
+                    <div class="trimestre-item">
+                        <div class="label">Realizado Trimestre</div>
+                        <div class="value" id="realizadoTri">R$ 0</div>
+                    </div>
+                    <div class="trimestre-item">
+                        <div class="label">Atingimento</div>
+                        <div class="value" id="atingTri">0%</div>
+                    </div>
+                    <div class="trimestre-item">
+                        <div class="label">RVV Acumulado</div>
+                        <div class="value" id="rvvAcum">R$ 0</div>
+                    </div>
+                    <div class="trimestre-item">
+                        <div class="label">Ajuste Trimestral</div>
+                        <div class="value" id="ajusteTri">R$ 0</div>
+                    </div>
+                    <div class="trimestre-item clawback-item">
+                        <div class="label">Desconto (Clawback)</div>
+                        <input type="text" id="clawback" placeholder="0,00" onfocus="limparFormatacao(this)" onblur="formatarCampo(this)" class="clawback-input campo-usuario-dark">
+                    </div>
+                    <div class="trimestre-item highlight">
+                        <div class="label">Total RVV Trimestre</div>
+                        <div class="value" id="totalTri">R$ 0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fluxo de Pagamentos -->
+        <div class="card">
+            <h3 class="card-title">Fluxo de Pagamentos</h3>
+            <table class="fluxo-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Mês 1</th>
+                        <th>Mês 2</th>
+                        <th>Mês 3</th>
+                        <th>Total Trimestre</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Fixo</td>
+                        <td id="fixo1">R$ 0</td>
+                        <td id="fixo2">R$ 0</td>
+                        <td id="fixo3">R$ 0</td>
+                        <td id="fixoTotal">R$ 0</td>
+                    </tr>
+                    <tr>
+                        <td>Variável</td>
+                        <td id="var1">R$ 0</td>
+                        <td id="var2">R$ 0</td>
+                        <td id="var3">R$ 0</td>
+                        <td id="varTotal">R$ 0</td>
+                    </tr>
+                    <tr>
+                        <td>Em Salários</td>
+                        <td id="sal1">0,0</td>
+                        <td id="sal2">0,0</td>
+                        <td id="sal3">0,0</td>
+                        <td id="salTotal">0,0</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td>Total</td>
+                        <td id="total1">R$ 0</td>
+                        <td id="total2">R$ 0</td>
+                        <td id="total3">R$ 0</td>
+                        <td id="totalGeral">R$ 0</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="label">Mix Realizado</div>
+                    <div class="value" id="mixRealizado">-</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Média Mensal</div>
+                    <div class="value" id="mediaMensal">R$ 0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Total em Salários</div>
+                    <div class="value" id="totalSalarios">0,0</div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="limpar()">Limpar</button>
+                <button class="btn btn-primary" onclick="calcular()">Recalcular</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Simulador de Remuneração Variável - <a href="#">Sankhya</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Dados dos cargos simplificados para Hunter/Farmer
+        // Mix padrão: 2/3 fixo, 1/3 variável (67/33)
+        // Com salário de 10.000, RVV Target = 10.000 * (1/3) / (2/3) = 10.000 * 0.5 = 5.000
+        const cargos = {
+            "Ger. Negócios": {
+                mixFixo: 2/3,
+                mixVariavel: 1/3,
+                escopo: "Equipe",
+                gatilho: 0.7,
+                teto: 3,
+                meta: null
+            },
+            "Ger. Regional de Vendas": {
+                mixFixo: 2/3,
+                mixVariavel: 1/3,
+                escopo: "Individual",
+                gatilho: 0.7,
+                teto: 3,
+                meta: null
+            },
+            "Coord. Negócios": {
+                mixFixo: 2/3,
+                mixVariavel: 1/3,
+                escopo: "Equipe",
+                gatilho: 0.7,
+                teto: 3,
+                meta: null
+            },
+            "Exec. Enterprise": {
+                mixFixo: 2/3,
+                mixVariavel: 1/3,
+                escopo: "Individual",
+                gatilho: 0.7,
+                teto: 3,
+                meta: 250000
+            },
+            "Exec. Negócios (Novos)": {
+                mixFixo: 2/3,
+                mixVariavel: 1/3,
+                escopo: "Individual",
+                gatilho: 0.7,
+                teto: 3,
+                meta: 130000
+            },
+            "Exec. Negócios (Base)": {
+                mixFixo: 2/3,
+                mixVariavel: 1/3,
+                escopo: "Individual",
+                gatilho: 0.7,
+                teto: 3,
+                meta: 160000
+            },
+            "Exec. Inside Sales": {
+                mixFixo: 2/3,
+                mixVariavel: 1/3,
+                escopo: "Individual",
+                gatilho: 0.7,
+                teto: 3,
+                meta: 90000
+            }
+        };
+
+        let cargoAtual = null;
+
+        function carregarParametros() {
+            const cargoNome = document.getElementById('cargo').value;
+
+            if (!cargoNome || !cargos[cargoNome]) {
+                cargoAtual = null;
+                limparParametros();
+                return;
+            }
+
+            cargoAtual = cargos[cargoNome];
+
+            // Mix
+            const mixFixoPercent = Math.round(cargoAtual.mixFixo * 100);
+            const mixVarPercent = Math.round(cargoAtual.mixVariavel * 100);
+            document.getElementById('mixDisplay').textContent = `${mixFixoPercent}/${mixVarPercent}`;
+            document.getElementById('mixFixoBar').style.width = `${mixFixoPercent}%`;
+            document.getElementById('mixVarBar').style.width = `${mixVarPercent}%`;
+
+            // Metas em branco (usuário preenche)
+            document.getElementById('meta1').value = '';
+            document.getElementById('meta2').value = '';
+            document.getElementById('meta3').value = '';
+
+            // Escopo
+            document.getElementById('escopoDisplay').textContent = cargoAtual.escopo;
+
+            // Curva
+            document.getElementById('gatilhoPercent').textContent = `${Math.round(cargoAtual.gatilho * 100)}%`;
+            document.getElementById('tetoPercent').textContent = `${Math.round(cargoAtual.teto * 100)}%`;
+
+            // Calcular salários na curva (mix 2/3 fixo, 1/3 variável)
+            // RVV Target = (1/3) / (2/3) = 0.5 salário/mês = 1.5 sal/tri
+            // Gatilho 70% = 0.7 * 0.5 * 3 = 1.05 sal/tri
+            // Meta 100% = 1.0 * 0.5 * 3 = 1.5 sal/tri
+            // Teto 300% com multiplicador 8x = 8 * 1.5 = 12 sal/tri
+            const rvvTargetMensal = cargoAtual.mixVariavel / cargoAtual.mixFixo; // = 0.5 salário
+            const salTrimGatilho = cargoAtual.gatilho * rvvTargetMensal * 3;
+            const salTrimMeta = rvvTargetMensal * 3;
+            const multiplicadorTeto = 1 + (cargoAtual.teto - 1) * 3.5; // = 8x para teto 300%
+            const salTrimTeto = multiplicadorTeto * rvvTargetMensal * 3;
+
+            document.getElementById('gatilhoSal').textContent = `${salTrimGatilho.toFixed(2)} sal/tri`;
+            document.getElementById('metaSal').textContent = `${salTrimMeta.toFixed(1)} sal/tri`;
+            document.getElementById('tetoSal').textContent = `${salTrimTeto.toFixed(1)} sal/tri`;
+
+            // Resetar checkboxes ao mudar de cargo
+            document.getElementById('rampup1').checked = false;
+            document.getElementById('rampup2').checked = false;
+            document.getElementById('rampup3').checked = false;
+
+            calcular();
+        }
+
+        function limparParametros() {
+            document.getElementById('mixDisplay').textContent = '-';
+            document.getElementById('rvvTarget').textContent = 'R$ 0';
+            document.getElementById('escopoDisplay').textContent = '-';
+        }
+
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Formatar número para exibição (1234567.89 -> "1.234.567,89")
+        function formatarNumero(valor) {
+            if (valor === 0 || valor === '' || isNaN(valor)) return '';
+            return valor.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Converter texto formatado para número ("1.234.567,89" -> 1234567.89)
+        function parsearNumero(texto) {
+            if (!texto || texto.trim() === '') return 0;
+            // Remove pontos de milhar e substitui vírgula por ponto
+            const limpo = texto.replace(/\./g, '').replace(',', '.');
+            const numero = parseFloat(limpo);
+            return isNaN(numero) ? 0 : numero;
+        }
+
+        // Aplicar formatação ao sair do campo
+        function formatarCampo(input) {
+            const valor = parsearNumero(input.value);
+            input.value = formatarNumero(valor);
+            calcular();
+        }
+
+        // Limpar formatação ao entrar no campo
+        function limparFormatacao(input) {
+            const valor = parsearNumero(input.value);
+            if (valor !== 0) {
+                input.value = valor.toString().replace('.', ',');
+            }
+        }
+
+        function getPatamar(atingimento) {
+            if (atingimento < 0.5) return { texto: '<50%', classe: 'below' };
+            if (atingimento < 0.7) return { texto: '50-70%', classe: 'below' };
+            if (atingimento < 0.8) return { texto: '70-80%', classe: 'low' };
+            if (atingimento < 0.95) return { texto: '80-95%', classe: 'low' };
+            if (atingimento < 1.05) return { texto: '95-105%', classe: 'target' };
+            if (atingimento < 1.2) return { texto: '105-120%', classe: 'target' };
+            if (atingimento < 1.5) return { texto: '120-150%', classe: 'above' };
+            if (atingimento < 2) return { texto: '150-200%', classe: 'above' };
+            return { texto: '>200%', classe: 'above' };
+        }
+
+        // Cálculo MENSAL: gatilho 70%, proporcional até 100%, limitado a 100%
+        function calcularRVVMensal(atingimento, rvvTarget, gatilho) {
+            // Se não atingiu o gatilho, não recebe variável
+            if (atingimento < gatilho) {
+                return 0;
+            }
+
+            // Limita a 100% no pagamento mensal (sem acelerador)
+            const atingimentoLimitado = Math.min(atingimento, 1);
+
+            return rvvTarget * atingimentoLimitado;
+        }
+
+        // Cálculo TRIMESTRAL: aplica aceleradores para quem passou de 100%
+        function calcularRVVTrimestral(atingimento, rvvTarget, gatilho, teto) {
+            // Se não atingiu o gatilho, não recebe variável
+            if (atingimento < gatilho) {
+                return 0;
+            }
+
+            // Limita ao teto
+            const atingimentoLimitado = Math.min(atingimento, teto);
+
+            // Multiplicador baseado no atingimento
+            // Fator de aceleração 3.5x para que 300% = 8x target = 12 salários/tri
+            let multiplicador;
+            if (atingimentoLimitado <= 1) {
+                // Entre gatilho e meta: proporcional
+                multiplicador = atingimentoLimitado;
+            } else {
+                // Acima da meta: acelerador (até o teto)
+                // 300% → 1 + (3-1) * 3.5 = 8x
+                multiplicador = 1 + (atingimentoLimitado - 1) * 3.5;
+            }
+
+            return rvvTarget * multiplicador;
+        }
+
+        function calcular() {
+            if (!cargoAtual) return;
+
+            const salario = parsearNumero(document.getElementById('salario').value);
+
+            // Metas individuais por mês
+            const meta1 = parsearNumero(document.getElementById('meta1').value);
+            const meta2 = parsearNumero(document.getElementById('meta2').value);
+            const meta3 = parsearNumero(document.getElementById('meta3').value);
+
+            // Calcular RVV Target
+            const rvvTarget = salario * (cargoAtual.mixVariavel / cargoAtual.mixFixo);
+            document.getElementById('rvvTarget').textContent = formatarMoeda(rvvTarget);
+
+            // Valores realizados
+            const realizado1 = parsearNumero(document.getElementById('realizado1').value);
+            const realizado2 = parsearNumero(document.getElementById('realizado2').value);
+            const realizado3 = parsearNumero(document.getElementById('realizado3').value);
+
+            // Calcular atingimentos individuais por mês
+            const ating1 = meta1 > 0 ? realizado1 / meta1 : 0;
+            const ating2 = meta2 > 0 ? realizado2 / meta2 : 0;
+            const ating3 = meta3 > 0 ? realizado3 / meta3 : 0;
+
+            // Mínimo garantido (0,5 salário por mês) - apenas para ramp-up
+            const minimoGarantido = salario * 0.5;
+
+            // Verificar se ramp-up está marcado
+            const rampup1 = document.getElementById('rampup1').checked;
+            const rampup2 = document.getElementById('rampup2').checked;
+            const rampup3 = document.getElementById('rampup3').checked;
+
+            // Calcular RVV mensal (sem aceleradores, limitado a 100%)
+            const rvvCalculado1 = calcularRVVMensal(ating1, rvvTarget, cargoAtual.gatilho);
+            const rvvCalculado2 = calcularRVVMensal(ating2, rvvTarget, cargoAtual.gatilho);
+            const rvvCalculado3 = calcularRVVMensal(ating3, rvvTarget, cargoAtual.gatilho);
+
+            // Aplicar mínimo garantido se ramp-up estiver marcado (maior dos dois)
+            const rvv1 = rampup1 ? Math.max(rvvCalculado1, minimoGarantido) : rvvCalculado1;
+            const rvv2 = rampup2 ? Math.max(rvvCalculado2, minimoGarantido) : rvvCalculado2;
+            const rvv3 = rampup3 ? Math.max(rvvCalculado3, minimoGarantido) : rvvCalculado3;
+
+            // Atualizar info de ramp-up
+            [1, 2, 3].forEach(mes => {
+                const rampupChecked = document.getElementById(`rampup${mes}`).checked;
+                const rvvCalc = mes === 1 ? rvvCalculado1 : (mes === 2 ? rvvCalculado2 : rvvCalculado3);
+                const rvvFinal = mes === 1 ? rvv1 : (mes === 2 ? rvv2 : rvv3);
+                const infoEl = document.getElementById(`rampup${mes}Info`);
+
+                if (rampupChecked) {
+                    infoEl.classList.add('active');
+                    if (rvvCalc < minimoGarantido) {
+                        infoEl.innerHTML = `Calculado: ${formatarMoeda(rvvCalc)} → <span class="garantido">Garantido: ${formatarMoeda(minimoGarantido)}</span>`;
+                    } else {
+                        infoEl.innerHTML = `Calculado: ${formatarMoeda(rvvCalc)} (maior que garantido de ${formatarMoeda(minimoGarantido)})`;
+                    }
+                } else {
+                    infoEl.classList.remove('active');
+                }
+            });
+
+            // Atualizar displays mensais
+            const meses = [
+                { ating: ating1, rvv: rvv1, prefix: '1' },
+                { ating: ating2, rvv: rvv2, prefix: '2' },
+                { ating: ating3, rvv: rvv3, prefix: '3' }
+            ];
+
+            meses.forEach(m => {
+                document.getElementById(`ating${m.prefix}`).textContent = `${(m.ating * 100).toFixed(1)}%`;
+                document.getElementById(`rvv${m.prefix}`).textContent = formatarMoeda(m.rvv);
+
+                const patamar = getPatamar(m.ating);
+                const patamarEl = document.getElementById(`patamar${m.prefix}`);
+                patamarEl.textContent = patamar.texto;
+                patamarEl.className = `patamar-badge ${patamar.classe}`;
+            });
+
+            // Cálculo trimestral
+            const metaTri = meta1 + meta2 + meta3;
+            const realizadoTri = realizado1 + realizado2 + realizado3;
+            const atingTri = metaTri > 0 ? realizadoTri / metaTri : 0;
+
+            // RVV trimestral com balanço (aqui aplicam os aceleradores)
+            const rvvAcumulado = rvv1 + rvv2 + rvv3;
+            const rvvTriTarget = rvvTarget * 3;
+            const rvvTriCalculado = calcularRVVTrimestral(atingTri, rvvTriTarget, cargoAtual.gatilho, cargoAtual.teto);
+            const ajusteTriCalculado = rvvTriCalculado - rvvAcumulado; // Pode ser positivo ou negativo
+
+            // Se ajuste for negativo, considera zero (não devolve RVV nem carrega negativo)
+            const ajusteTri = Math.max(0, ajusteTriCalculado);
+
+            // Desconto/Clawback informado pelo usuário
+            const clawback = parsearNumero(document.getElementById('clawback').value);
+            const totalRVVTri = rvvAcumulado + ajusteTri - clawback;
+
+            // Atualizar balanço trimestral
+            document.getElementById('metaTri').textContent = formatarMoeda(metaTri);
+            document.getElementById('realizadoTri').textContent = formatarMoeda(realizadoTri);
+            document.getElementById('atingTri').textContent = `${(atingTri * 100).toFixed(1)}%`;
+            document.getElementById('rvvAcum').textContent = formatarMoeda(rvvAcumulado);
+            document.getElementById('ajusteTri').textContent = formatarMoeda(ajusteTri);
+            document.getElementById('totalTri').textContent = formatarMoeda(totalRVVTri);
+
+            // Fluxo de pagamentos
+            const fixoTotal = salario * 3;
+            const varTotal = totalRVVTri;
+
+            document.getElementById('fixo1').textContent = formatarMoeda(salario);
+            document.getElementById('fixo2').textContent = formatarMoeda(salario);
+            document.getElementById('fixo3').textContent = formatarMoeda(salario);
+            document.getElementById('fixoTotal').textContent = formatarMoeda(fixoTotal);
+
+            document.getElementById('var1').textContent = formatarMoeda(rvv1);
+            document.getElementById('var2').textContent = formatarMoeda(rvv2);
+            document.getElementById('var3').textContent = formatarMoeda(rvv3 + ajusteTri - clawback);
+            document.getElementById('varTotal').textContent = formatarMoeda(varTotal);
+
+            // Em salários
+            const sal1 = salario > 0 ? rvv1 / salario : 0;
+            const sal2 = salario > 0 ? rvv2 / salario : 0;
+            const sal3 = salario > 0 ? (rvv3 + ajusteTri - clawback) / salario : 0;
+            const salTotal = sal1 + sal2 + sal3;
+
+            document.getElementById('sal1').textContent = sal1.toFixed(2);
+            document.getElementById('sal2').textContent = sal2.toFixed(2);
+            document.getElementById('sal3').textContent = sal3.toFixed(2);
+            document.getElementById('salTotal').textContent = salTotal.toFixed(2);
+
+            // Totais
+            const total1 = salario + rvv1;
+            const total2 = salario + rvv2;
+            const total3 = salario + rvv3 + ajusteTri - clawback;
+            const totalGeral = fixoTotal + varTotal;
+
+            document.getElementById('total1').textContent = formatarMoeda(total1);
+            document.getElementById('total2').textContent = formatarMoeda(total2);
+            document.getElementById('total3').textContent = formatarMoeda(total3);
+            document.getElementById('totalGeral').textContent = formatarMoeda(totalGeral);
+
+            // Mix realizado
+            const mixFixoReal = totalGeral > 0 ? (fixoTotal / totalGeral * 100).toFixed(0) : 0;
+            const mixVarReal = totalGeral > 0 ? (varTotal / totalGeral * 100).toFixed(0) : 0;
+            document.getElementById('mixRealizado').textContent = `${mixFixoReal}/${mixVarReal}`;
+
+            // Média mensal
+            document.getElementById('mediaMensal').textContent = formatarMoeda(totalGeral / 3);
+
+            // Total em salários
+            document.getElementById('totalSalarios').textContent = salTotal.toFixed(2);
+        }
+
+        function limpar() {
+            document.getElementById('meta1').value = '';
+            document.getElementById('meta2').value = '';
+            document.getElementById('meta3').value = '';
+            document.getElementById('realizado1').value = '';
+            document.getElementById('realizado2').value = '';
+            document.getElementById('realizado3').value = '';
+            document.getElementById('clawback').value = '';
+            document.getElementById('rampup1').checked = false;
+            document.getElementById('rampup2').checked = false;
+            document.getElementById('rampup3').checked = false;
+            calcular();
+        }
+    </script>
+</body>
+</html>
