@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -817,7 +818,7 @@
                         </div>
                         <div class="info-item">
                             <div class="label">RVV Target/Mês</div>
-                            <div class="value green" id="rvvTarget">R$ 0</div>
+                            <input type="text" id="rvvTarget" placeholder="0,00" class="campo-usuario" style="width: 100%; padding: 10px; font-size: 1rem;" onfocus="limparFormatacao(this)" onblur="formatarCampoRVV(this)">
                         </div>
                         <div class="info-item">
                             <div class="label">KPI</div>
@@ -869,7 +870,6 @@
                         <div class="resultado-item">
                             <div class="label">Atingimento</div>
                             <div class="value" id="ating1">0%</div>
-                            <div class="patamar-badge below" id="patamar1">&lt;50%</div>
                         </div>
                         <div class="resultado-item">
                             <div class="label">RVV Mês</div>
@@ -902,7 +902,6 @@
                         <div class="resultado-item">
                             <div class="label">Atingimento</div>
                             <div class="value" id="ating2">0%</div>
-                            <div class="patamar-badge below" id="patamar2">&lt;50%</div>
                         </div>
                         <div class="resultado-item">
                             <div class="label">RVV Mês</div>
@@ -935,7 +934,6 @@
                         <div class="resultado-item">
                             <div class="label">Atingimento</div>
                             <div class="value" id="ating3">0%</div>
-                            <div class="patamar-badge below" id="patamar3">&lt;50%</div>
                         </div>
                         <div class="resultado-item">
                             <div class="label">RVV Mês</div>
@@ -1217,6 +1215,13 @@
             calcular();
         }
 
+        // Formatação específica para RVV Target (pré-preenche e recalcula)
+        function formatarCampoRVV(input) {
+            const valor = parsearNumero(input.value);
+            input.value = formatarNumero(valor);
+            calcular();
+        }
+
         // Limpar formatação ao entrar no campo
         function limparFormatacao(input) {
             const valor = parsearNumero(input.value);
@@ -1285,9 +1290,20 @@
             const meta2 = parsearNumero(document.getElementById('meta2').value);
             const meta3 = parsearNumero(document.getElementById('meta3').value);
 
-            // Calcular RVV Target
-            const rvvTarget = salario * (cargoAtual.mixVariavel / cargoAtual.mixFixo);
-            document.getElementById('rvvTarget').textContent = formatarMoeda(rvvTarget);
+            // Calcular RVV Target sugerido baseado no salário
+            const rvvTargetSugerido = salario * (cargoAtual.mixVariavel / cargoAtual.mixFixo);
+
+            // Verificar se o usuário já editou o campo RVV Target
+            const rvvTargetInput = document.getElementById('rvvTarget');
+            const rvvTargetAtual = parsearNumero(rvvTargetInput.value);
+
+            // Se o campo estiver vazio ou zerado, preencher com o valor sugerido
+            if (rvvTargetAtual === 0 && salario > 0) {
+                rvvTargetInput.value = formatarNumero(rvvTargetSugerido);
+            }
+
+            // Usar o valor do campo (editado ou sugerido)
+            const rvvTarget = parsearNumero(rvvTargetInput.value);
 
             // Valores realizados
             const realizado1 = parsearNumero(document.getElementById('realizado1').value);
@@ -1346,11 +1362,6 @@
             meses.forEach(m => {
                 document.getElementById(`ating${m.prefix}`).textContent = `${(m.ating * 100).toFixed(1)}%`;
                 document.getElementById(`rvv${m.prefix}`).textContent = formatarMoeda(m.rvv);
-
-                const patamar = getPatamar(m.ating);
-                const patamarEl = document.getElementById(`patamar${m.prefix}`);
-                patamarEl.textContent = patamar.texto;
-                patamarEl.className = `patamar-badge ${patamar.classe}`;
             });
 
             // Cálculo trimestral
@@ -1435,6 +1446,7 @@
             document.getElementById('realizado2').value = '';
             document.getElementById('realizado3').value = '';
             document.getElementById('clawback').value = '';
+            document.getElementById('rvvTarget').value = '';
             document.getElementById('rampup1').checked = false;
             document.getElementById('rampup2').checked = false;
             document.getElementById('rampup3').checked = false;
