@@ -1052,6 +1052,12 @@
             </div>
         </div>
 
+        <!-- Explicação do Cálculo -->
+        <div class="card" id="explicacaoCard" style="display: none;">
+            <h3 class="card-title">Como seu RVV foi calculado</h3>
+            <div id="explicacaoTexto" style="line-height: 1.8; color: var(--sankhya-text);"></div>
+        </div>
+
         <div class="footer">
             <p>Simulador de Remuneração Variável - <a href="#">Sankhya</a></p>
         </div>
@@ -1310,10 +1316,16 @@
             const realizado2 = parsearNumero(document.getElementById('realizado2').value);
             const realizado3 = parsearNumero(document.getElementById('realizado3').value);
 
-            // Calcular atingimentos individuais por mês
-            const ating1 = meta1 > 0 ? realizado1 / meta1 : 0;
-            const ating2 = meta2 > 0 ? realizado2 / meta2 : 0;
-            const ating3 = meta3 > 0 ? realizado3 / meta3 : 0;
+            // Identificar meses com meta (meta > 0)
+            const temMeta1 = meta1 > 0;
+            const temMeta2 = meta2 > 0;
+            const temMeta3 = meta3 > 0;
+            const mesesComMeta = (temMeta1 ? 1 : 0) + (temMeta2 ? 1 : 0) + (temMeta3 ? 1 : 0);
+
+            // Calcular atingimentos individuais por mês (só para meses com meta)
+            const ating1 = temMeta1 ? realizado1 / meta1 : null;
+            const ating2 = temMeta2 ? realizado2 / meta2 : null;
+            const ating3 = temMeta3 ? realizado3 / meta3 : null;
 
             // Mínimo garantido (0,5 salário por mês) - apenas para ramp-up
             const minimoGarantido = salario * 0.5;
@@ -1323,15 +1335,15 @@
             const rampup2 = document.getElementById('rampup2').checked;
             const rampup3 = document.getElementById('rampup3').checked;
 
-            // Calcular RVV mensal (sem aceleradores, limitado a 100%)
-            const rvvCalculado1 = calcularRVVMensal(ating1, rvvTarget, cargoAtual.gatilho);
-            const rvvCalculado2 = calcularRVVMensal(ating2, rvvTarget, cargoAtual.gatilho);
-            const rvvCalculado3 = calcularRVVMensal(ating3, rvvTarget, cargoAtual.gatilho);
+            // Calcular RVV mensal (sem aceleradores, limitado a 100%) - só para meses com meta
+            const rvvCalculado1 = temMeta1 ? calcularRVVMensal(ating1, rvvTarget, cargoAtual.gatilho) : 0;
+            const rvvCalculado2 = temMeta2 ? calcularRVVMensal(ating2, rvvTarget, cargoAtual.gatilho) : 0;
+            const rvvCalculado3 = temMeta3 ? calcularRVVMensal(ating3, rvvTarget, cargoAtual.gatilho) : 0;
 
-            // Aplicar mínimo garantido se ramp-up estiver marcado (maior dos dois)
-            const rvv1 = rampup1 ? Math.max(rvvCalculado1, minimoGarantido) : rvvCalculado1;
-            const rvv2 = rampup2 ? Math.max(rvvCalculado2, minimoGarantido) : rvvCalculado2;
-            const rvv3 = rampup3 ? Math.max(rvvCalculado3, minimoGarantido) : rvvCalculado3;
+            // Aplicar mínimo garantido se ramp-up estiver marcado (maior dos dois) - só para meses com meta
+            const rvv1 = temMeta1 ? (rampup1 ? Math.max(rvvCalculado1, minimoGarantido) : rvvCalculado1) : 0;
+            const rvv2 = temMeta2 ? (rampup2 ? Math.max(rvvCalculado2, minimoGarantido) : rvvCalculado2) : 0;
+            const rvv3 = temMeta3 ? (rampup3 ? Math.max(rvvCalculado3, minimoGarantido) : rvvCalculado3) : 0;
 
             // Atualizar info de ramp-up
             [1, 2, 3].forEach(mes => {
@@ -1354,24 +1366,29 @@
 
             // Atualizar displays mensais
             const meses = [
-                { ating: ating1, rvv: rvv1, prefix: '1' },
-                { ating: ating2, rvv: rvv2, prefix: '2' },
-                { ating: ating3, rvv: rvv3, prefix: '3' }
+                { ating: ating1, rvv: rvv1, prefix: '1', temMeta: temMeta1 },
+                { ating: ating2, rvv: rvv2, prefix: '2', temMeta: temMeta2 },
+                { ating: ating3, rvv: rvv3, prefix: '3', temMeta: temMeta3 }
             ];
 
             meses.forEach(m => {
-                document.getElementById(`ating${m.prefix}`).textContent = `${(m.ating * 100).toFixed(1)}%`;
-                document.getElementById(`rvv${m.prefix}`).textContent = formatarMoeda(m.rvv);
+                if (m.temMeta) {
+                    document.getElementById(`ating${m.prefix}`).textContent = `${(m.ating * 100).toFixed(1)}%`;
+                    document.getElementById(`rvv${m.prefix}`).textContent = formatarMoeda(m.rvv);
+                } else {
+                    document.getElementById(`ating${m.prefix}`).textContent = 'Sem Meta';
+                    document.getElementById(`rvv${m.prefix}`).textContent = '-';
+                }
             });
 
-            // Cálculo trimestral
-            const metaTri = meta1 + meta2 + meta3;
-            const realizadoTri = realizado1 + realizado2 + realizado3;
+            // Cálculo trimestral - considera apenas meses com meta
+            const metaTri = (temMeta1 ? meta1 : 0) + (temMeta2 ? meta2 : 0) + (temMeta3 ? meta3 : 0);
+            const realizadoTri = (temMeta1 ? realizado1 : 0) + (temMeta2 ? realizado2 : 0) + (temMeta3 ? realizado3 : 0);
             const atingTri = metaTri > 0 ? realizadoTri / metaTri : 0;
 
-            // RVV trimestral com balanço (aqui aplicam os aceleradores)
+            // RVV trimestral com balanço (aqui aplicam os aceleradores) - baseado nos meses com meta
             const rvvAcumulado = rvv1 + rvv2 + rvv3;
-            const rvvTriTarget = rvvTarget * 3;
+            const rvvTriTarget = rvvTarget * mesesComMeta;
             const rvvTriCalculado = calcularRVVTrimestral(atingTri, rvvTriTarget, cargoAtual.gatilho, cargoAtual.teto);
             const ajusteTriCalculado = rvvTriCalculado - rvvAcumulado; // Pode ser positivo ou negativo
 
@@ -1436,6 +1453,130 @@
 
             // Total em salários
             document.getElementById('totalSalarios').textContent = salTotal.toFixed(2);
+
+            // Gerar explicação do cálculo
+            gerarExplicacao({
+                salario, rvvTarget, mesesComMeta,
+                meta1, meta2, meta3,
+                realizado1, realizado2, realizado3,
+                temMeta1, temMeta2, temMeta3,
+                ating1, ating2, ating3,
+                rvv1, rvv2, rvv3,
+                rvvAcumulado, atingTri, rvvTriTarget, rvvTriCalculado,
+                ajusteTri, clawback, totalRVVTri,
+                gatilho: cargoAtual.gatilho,
+                teto: cargoAtual.teto,
+                rampup1, rampup2, rampup3,
+                minimoGarantido, rvvCalculado1, rvvCalculado2, rvvCalculado3
+            });
+        }
+
+        function gerarExplicacao(dados) {
+            const card = document.getElementById('explicacaoCard');
+            const texto = document.getElementById('explicacaoTexto');
+
+            // Só mostra se houver dados suficientes
+            if (dados.salario <= 0 || dados.mesesComMeta === 0) {
+                card.style.display = 'none';
+                return;
+            }
+
+            card.style.display = 'block';
+
+            let html = '<div style="font-size: 0.95rem;">';
+
+            // Introdução
+            html += `<p style="margin-bottom: 15px;"><strong>Seu RVV Target mensal é ${formatarMoeda(dados.rvvTarget)}</strong> (o valor que você recebe ao atingir 100% da meta). O gatilho mínimo para receber variável é ${Math.round(dados.gatilho * 100)}% da meta.</p>`;
+
+            // Explicação de cada mês
+            const mesesInfo = [
+                { num: 1, temMeta: dados.temMeta1, meta: dados.meta1, realizado: dados.realizado1, ating: dados.ating1, rvv: dados.rvv1, rvvCalc: dados.rvvCalculado1, rampup: dados.rampup1 },
+                { num: 2, temMeta: dados.temMeta2, meta: dados.meta2, realizado: dados.realizado2, ating: dados.ating2, rvv: dados.rvv2, rvvCalc: dados.rvvCalculado2, rampup: dados.rampup2 },
+                { num: 3, temMeta: dados.temMeta3, meta: dados.meta3, realizado: dados.realizado3, ating: dados.ating3, rvv: dados.rvv3, rvvCalc: dados.rvvCalculado3, rampup: dados.rampup3 }
+            ];
+
+            html += '<div style="background: var(--gray-100); padding: 15px; border-radius: 8px; margin-bottom: 15px;">';
+            html += '<p style="font-weight: 600; margin-bottom: 10px; color: var(--sankhya-dark);">Pagamento Mensal:</p>';
+
+            mesesInfo.forEach(m => {
+                html += `<p style="margin-bottom: 8px; padding-left: 10px; border-left: 3px solid var(--sankhya-green);">`;
+                html += `<strong>Mês ${m.num}:</strong> `;
+
+                if (!m.temMeta) {
+                    html += `Sem meta definida, mês não entra no cálculo.`;
+                } else if (m.ating < dados.gatilho) {
+                    html += `Você atingiu ${(m.ating * 100).toFixed(1)}% da meta. Como ficou abaixo do gatilho de ${Math.round(dados.gatilho * 100)}%, `;
+                    if (m.rampup) {
+                        html += `mas está em ramp-up, você recebe o mínimo garantido de <strong>${formatarMoeda(dados.minimoGarantido)}</strong>.`;
+                    } else {
+                        html += `não há pagamento de variável neste mês.`;
+                    }
+                } else {
+                    const atingPct = (m.ating * 100).toFixed(1);
+                    const atingLimitado = Math.min(m.ating, 1);
+                    html += `Você atingiu ${atingPct}% da meta. `;
+
+                    if (m.ating > 1) {
+                        html += `O pagamento mensal é limitado a 100%, então você recebe ${formatarMoeda(dados.rvvTarget)} (o excedente será considerado no balanço trimestral). `;
+                    } else {
+                        html += `Seu RVV é ${(atingLimitado * 100).toFixed(0)}% × ${formatarMoeda(dados.rvvTarget)} = <strong>${formatarMoeda(m.rvvCalc)}</strong>. `;
+                    }
+
+                    if (m.rampup && m.rvvCalc < dados.minimoGarantido) {
+                        html += `Como está em ramp-up, você recebe o mínimo garantido de <strong>${formatarMoeda(dados.minimoGarantido)}</strong>.`;
+                    }
+                }
+                html += '</p>';
+            });
+            html += '</div>';
+
+            // Balanço trimestral
+            html += '<div style="background: var(--sankhya-dark); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">';
+            html += '<p style="font-weight: 600; margin-bottom: 10px;">Balanço Trimestral:</p>';
+
+            const atingTriPct = (dados.atingTri * 100).toFixed(1);
+            html += `<p style="margin-bottom: 8px;">Seu atingimento consolidado no trimestre foi de <strong>${atingTriPct}%</strong>.`;
+
+            if (dados.atingTri < dados.gatilho) {
+                html += ` Como ficou abaixo do gatilho de ${Math.round(dados.gatilho * 100)}%, não há ajuste trimestral.</p>`;
+            } else if (dados.atingTri <= 1) {
+                html += ` Dentro da faixa entre gatilho e meta, sem acelerador.</p>`;
+            } else if (dados.atingTri > 1) {
+                const tetoAtingimento = Math.min(dados.atingTri, dados.teto);
+                const multiplicador = 1 + (tetoAtingimento - 1) * 3.5;
+                html += ` Como passou de 100%, você entra na curva de aceleração.</p>`;
+                html += `<p style="margin-bottom: 8px;">Com ${atingTriPct}% de atingimento, seu multiplicador é de <strong>${multiplicador.toFixed(2)}x</strong>`;
+                if (dados.atingTri > dados.teto) {
+                    html += ` (limitado ao teto de ${Math.round(dados.teto * 100)}%)`;
+                }
+                html += `.</p>`;
+            }
+
+            html += `<p style="margin-bottom: 8px;">RVV Target do período: ${formatarMoeda(dados.rvvTriTarget)} (${dados.mesesComMeta} ${dados.mesesComMeta > 1 ? 'meses' : 'mês'} com meta)</p>`;
+            html += `<p style="margin-bottom: 8px;">RVV já pago nos meses: ${formatarMoeda(dados.rvvAcumulado)}</p>`;
+            html += `<p style="margin-bottom: 8px;">RVV total calculado no trimestre: ${formatarMoeda(dados.rvvTriCalculado)}</p>`;
+
+            if (dados.ajusteTri > 0) {
+                html += `<p style="margin-bottom: 8px; color: var(--sankhya-green);"><strong>Ajuste positivo no Mês 3:</strong> +${formatarMoeda(dados.ajusteTri)}</p>`;
+            } else if (dados.rvvTriCalculado < dados.rvvAcumulado) {
+                html += `<p style="margin-bottom: 8px;">O cálculo trimestral resultou em valor menor que o já pago, mas não há desconto (você mantém o que já recebeu).</p>`;
+            }
+
+            if (dados.clawback > 0) {
+                html += `<p style="margin-bottom: 8px; color: var(--sankhya-red);"><strong>Desconto (Clawback):</strong> -${formatarMoeda(dados.clawback)}</p>`;
+            }
+
+            html += '</div>';
+
+            // Resumo final
+            html += '<div style="background: var(--sankhya-green); color: white; padding: 15px; border-radius: 8px;">';
+            html += '<p style="font-weight: 600; margin-bottom: 10px;">Resumo do seu RVV no Trimestre:</p>';
+            html += `<p style="font-size: 1.1rem;"><strong>Total: ${formatarMoeda(dados.totalRVVTri)}</strong></p>`;
+            html += '</div>';
+
+            html += '</div>';
+
+            texto.innerHTML = html;
         }
 
         function limpar() {
@@ -1450,6 +1591,7 @@
             document.getElementById('rampup1').checked = false;
             document.getElementById('rampup2').checked = false;
             document.getElementById('rampup3').checked = false;
+            document.getElementById('explicacaoCard').style.display = 'none';
             calcular();
         }
     </script>
